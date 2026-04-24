@@ -1,87 +1,722 @@
-/*
- * Copyright (c) 2020 The ZMK Contributors
- *
- * SPDX-License-Identifier: MIT
- */
+#define ZMK_MOUSE_DEFAULT_SCRL_VAL 140
 
+#include <behaviors/mouse_keys.dtsi>
+#include <dt-bindings/zmk/mouse.h>
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/pointing.h>
+
+
+#define XXX &none
+#define ___ &trans
+
+#define COMBO_TIMEOUT 100
+
+#define DEF 0
+#define WIN 1
+#define IOS 2
+#define NAV 3
+#define FN 4
+#define LOCK 5  // 添加LOCK层
+#define SYS 6
+
+
+// 设置图层切换风格, 默认是轻触优先, 我这里改成按住优先就可以
+&lt {
+    flavor = "hold-preferred";
+    tapping-term-ms = <200>;
+    require-prior-idle-ms = <125>;  // 也就差说如果我在按下A键125ms内按下这个键, 轻触行为会生效
+};
+
+&mt {
+    flavor = "hold-preferred";
+    tapping-term-ms = <200>;
+};
+
+
+/ {
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+        tri_layer {
+            if-layers = <3 4>;
+            then-layer = <6>;
+        };
+    };
+};
+
+/ {
+    combos {
+        compatible = "zmk,combos";
+
+        // 添加锁定层的组合键
+        // combo_lock_layer {
+        //     timeout-ms = <50>;
+        //     key-positions = <1 2 3>;  // 右上角三个键的组合
+        //     bindings = <&tog LOCK>;     // 切换LOCK层
+        // };
+
+         combo_lock_layer_new {
+             timeout-ms = <50>;
+             key-positions = <14 15 16>;  // 三个键的组合, 第一排开始, 左右都算在内
+             bindings = <&tog LOCK>;     // 切换LOCK层
+             require-prior-idle-ms = <1000>;  // 添加这个配置，要求在按combo之前有200ms的空闲时间
+         };
+    };
+};
+
+
+/ {
+    behaviors {
+
+    mk_tap: mk_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&kp>, <&kp>;
+        };
+
+    mt_hold: mt_hold {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&kp>, <&kp>;
+        };
+
+    lgui_hold: lgui_hold {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <300>;
+            // quick-tap-ms = <200>; // 如果在200毫秒内再次按下这个键, 则直接出发两次这个键
+            // retro-tap;  // 如果按了之后没有按其他键, 直接松开了, 则触发短按功能
+            hold-while-undecided;  // 如果按住之后, 立刻按其他键了, 则直接触发长按功能
+            // hold-while-undecided-linger;
+            bindings = <&kp>, <&kp>;
+        };
+
+    layer_tap: layer_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <200>; // 如果在200毫秒内再次按下删除键, 则直接触发删除键
+            // require-prior-idle-ms = <125>;   // 如果在按下之后的125ms内按下了其他的非修饰键, 例如f键, 则直接触发删除键功能
+            retro-tap;  // 如果按了之后没有按其他键, 直接松开了, 则触发删除键功能
+            //  hold-while-undecided;  // 按下后立即触发换层功能, 除非什么也不按直接松开, 否则都是按住功能
+            bindings = <&mo>, <&kp>;
+        };
+
+
+        layer_hold: layer_hold {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <300>;
+            quick-tap-ms = <200>; // 如果在200毫秒内再次按下删除键, 则直接触发删除键
+            require-prior-idle-ms = <125>;   // 如果在按下之前的125ms内按下了其他的非修饰键, 例如f键, 则直接触发删除键功能
+            // retro-tap;  // 如果按了之后没有按其他键, 直接松开了, 则触发删除键功能
+            hold-while-undecided;  // 按下后立即触发换层功能, 除非什么也不按直接松开, 否则都是按住功能
+            bindings = <&mo>, <&kp>;
+        };
+
+
+
+        go_up: go_up {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp I>, <&kp UP_ARROW>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_down: go_down {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp K>, <&kp DOWN_ARROW>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_right: go_right {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp L>, <&kp RIGHT_ARROW>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_left: go_left {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp J>, <&kp LEFT_ARROW>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_page_up: go_page_up {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp Y>, <&kp PAGE_UP>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_page_down: go_page_down {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp H>, <&kp PAGE_DOWN>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_line_home: go_line_home {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp Y>, <&kp LG(LEFT_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        go_line_end: go_line_end {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp U>, <&kp LG(RIGHT_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        // win方向快捷键设置
+        win_up: win_up {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp I>, <&kp UP_ARROW>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_down: win_down {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp K>, <&kp DOWN_ARROW>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_right: win_right {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp L>, <&kp RIGHT_ARROW>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_left: win_left {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp J>, <&kp LEFT_ARROW>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_page_up: win_page_up {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp Y>, <&kp PAGE_UP>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_page_down: win_page_down {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp H>, <&kp PAGE_DOWN>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_line_home: win_line_home {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp Y>, <&kp LG(LEFT_ARROW)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        win_line_end: win_line_end {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp U>, <&kp LG(RIGHT_ARROW)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+    };
+};
+
+
+/ {
+    behaviors {
+        command_4: command_4 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_4>, <&kp LG(LEFT_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_8_base: command_8_base {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_8>, <&kp LG(UP_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_8_shift: command_8_shift {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp ASTERISK>, <&account_macro>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_8: command_8 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&command_8_base>, <&command_8_shift>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+        command_5: command_5 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_5>, <&kp LG(DOWN_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_6_base: command_6_base {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_6>, <&kp LG(RIGHT_ARROW)>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_6_shift: command_6_shift {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp CARET>, <&qq_macro>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_6: command_6 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&command_6_base>, <&command_6_shift>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+        command_7_shift: command_7_shift {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp AMPS>, <&email_macro>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_7: command_7 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_7>, <&command_7_shift>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+        command_9_shift: command_9_shift {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LPAR>, <&phone_macro>;
+            mods = <(MOD_LGUI|MOD_RGUI)>;
+        };
+
+        command_9: command_9 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp NUMBER_9>, <&command_9_shift>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+
+    };
+};
+
+
+/ {
+    macros {
+
+        account_macro: account_macro {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings
+                = <&macro_release &kp LSHFT>
+                , <&macro_release &kp RSHFT>
+                , <&macro_release &kp LGUI>
+                , <&macro_release &kp RGUI>
+                , <&macro_release &kp LCTRL>
+                , <&macro_release &kp RCTRL>
+                , <&macro_release &kp LALT>
+                , <&macro_release &kp RALT>
+                , <&macro_tap &kp LS(Y) &kp Y &kp UNDERSCORE &kp N1 &kp N3 &kp N0 &kp N2 &kp N9 &kp N9 &kp N5 &kp N3 &kp N8 &kp N8 &kp N7>
+                ;
+        };
+
+        email_macro: email_macro {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings
+                = <&macro_release &kp LSHFT>
+                , <&macro_release &kp RSHFT>
+                , <&macro_release &kp LGUI>
+                , <&macro_release &kp RGUI>
+                , <&macro_release &kp LCTRL>
+                , <&macro_release &kp RCTRL>
+                , <&macro_release &kp LALT>
+                , <&macro_release &kp RALT>
+                , <&macro_tap &kp Y &kp A &kp N &kp G &kp Y &kp U &kp E &kp H &kp A &kp H &kp A &kp AT &kp Q &kp Q &kp DOT &kp C &kp O &kp M>
+                ;
+        };
+
+        phone_macro: phone_macro {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings
+                = <&macro_release &kp LSHFT>
+                , <&macro_release &kp RSHFT>
+                , <&macro_release &kp LGUI>
+                , <&macro_release &kp RGUI>
+                , <&macro_release &kp LCTRL>
+                , <&macro_release &kp RCTRL>
+                , <&macro_release &kp LALT>
+                , <&macro_release &kp RALT>
+                , <&macro_tap &kp N1 &kp N8 &kp N9 &kp N4 &kp N6 &kp N3 &kp N5 &kp N1 &kp N8 &kp N6 &kp N0>
+                ;
+        };
+
+        qq_macro: qq_macro {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            wait-ms = <10>;
+            tap-ms = <10>;
+            bindings
+                = <&macro_release &kp LSHFT>
+                , <&macro_release &kp RSHFT>
+                , <&macro_release &kp LGUI>
+                , <&macro_release &kp RGUI>
+                , <&macro_release &kp LCTRL>
+                , <&macro_release &kp RCTRL>
+                , <&macro_release &kp LALT>
+                , <&macro_release &kp RALT>
+                , <&macro_tap &kp Y &kp Y &kp N3 &kp N5 &kp N3 &kp N4 &kp N3 &kp N6 &kp N5>
+                ;
+        };
+
+        tab_page_two: tab_page_two {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&macro_press &kp LGUI>
+                , <&macro_wait_time 100>
+                , <&macro_tap &kp TAB>
+                , <&macro_wait_time 100>
+                , <&macro_tap &kp TAB>
+                , <&macro_wait_time 100>
+                , <&macro_release &kp LGUI>
+                ;
+        };
+
+        go_macbook: go_macbook {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 0>
+                , <&to DEF>
+                ;
+        };
+
+        go_macpro: go_macpro {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 1>
+                , <&to DEF>
+                ;
+        };
+
+        go_win: go_win {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 2>
+                , <&to WIN>
+                ;
+        };
+
+        go_ipad: go_ipad {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 3>
+                , <&to IOS>
+                ;
+        };
+
+       go_vision: go_vision {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 4>
+                , <&to IOS>
+                ;
+        };
+
+        go_lock: go_lock {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings
+                = <&bt BT_SEL 4>
+                , <&tog LOCK>
+                ;
+        };
+
+    };
+};
+
+
+// 下面是Notion快捷键
+
+/ {
+    behaviors {
+
+        notion_h1: notion_h1 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp A>, <&kp LG(LA(NUMBER_1))>;
+            mods = <(MOD_LALT)>;
+        };
+
+        notion_h2: notion_h2 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp S>, <&kp LG(LA(NUMBER_2))>;
+            mods = <(MOD_LALT)>;
+        };
+
+        notion_h3: notion_h3 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp D>, <&kp LG(LA(NUMBER_3))>;
+            mods = <(MOD_LALT)>;
+        };
+
+        notion_h0: notion_h0 {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp F>, <&kp LG(LA(NUMBER_0))>;
+            mods = <(MOD_LALT)>;
+        };
+    };
+};
+
+
+/ {
+    behaviors {
+
+        LGUI_tab: LGUI_tab {
+                compatible = "zmk,behavior-mod-morph";
+                #binding-cells = <0>;
+                bindings = <&kp LGUI>, <&kp LS(TAB)>;
+                mods = <(MOD_LSFT)>;
+        };
+
+        LCTL_tab: LCTL_tab {
+                compatible = "zmk,behavior-mod-morph";
+                #binding-cells = <0>;
+                bindings = <&kp LCTL>, <&kp LS(TAB)>;
+                mods = <(MOD_LSFT)>;
+        };
+
+        LOCK_TOG: LOCK_TOG {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <XXX>, <&tog LOCK>;
+            mods = <(MOD_LGUI)>;
+        };
+
+        tonav: tonav {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <XXX>, <&tog NAV>;
+            mods = <(MOD_LALT)>;
+        };
+
+        dance_tilde: dance_tilde {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <200>;
+            bindings = <XXX>, <&kp TILDE>;
+        };
+    };
+};
+
+
+/ {
+    behaviors {
+
+        td0: tap_dance_0 {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <200>;
+            bindings = <&kp N1>, <&kp N2>, <&kp N3>;
+        };
+
+        dance_LBRC: dance_LBRC {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp RS(LBKT)>, <&kp RS(RBKT)>;
+        };
+
+        dance_LPAR: dance_LPAR {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp RS(N9)>, <&kp RS(N0)>;
+        };
+
+        dance_LBKT: dance_LBKT {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp LBKT>, <&kp RBKT>;
+        };
+
+        dance_COLON: dance_COLON {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp RS(SEMICOLON)>, <&kp SEMICOLON>;
+        };
+
+        dance_PIPE: dance_PIPE {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp RS(BACKSLASH)>, <&kp BACKSLASH>;
+        };
+
+        dance_GRAVE: dance_GRAVE {
+            compatible = "zmk,behavior-tap-dance";
+            #binding-cells = <0>;
+            tapping-term-ms = <400>;
+            bindings = <&kp GRAVE>, <&kp TILDE>;
+        };
+    };
+};
+
 
 / {
     keymap {
         compatible = "zmk,keymap";
 
-        default_layer {
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U   |  I  |  O  |  P  | BSPC |
-            // | CTRL |  A  |  S  |  D  |  F  |  G  |   |  H  |  J   |  K  |  L  |  ;  |  '   |
-            // | SHFT |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M   |  ,  |  .  |  /  | ESC  |
-            //                    | GUI | LWR | SPC |   | ENT | RSE  | ALT |
-
+        DEF_layer {
             bindings = <
-&kp TAB    &kp Q  &kp W  &kp E     &kp R  &kp T        &kp Y    &kp U  &kp I      &kp O    &kp P     &kp BSPC
-&kp LCTRL  &kp A  &kp S  &kp D     &kp F  &kp G        &kp H    &kp J  &kp K      &kp L    &kp SEMI  &kp SQT
-&kp LSHFT  &kp Z  &kp X  &kp C     &kp V  &kp B        &kp N    &kp M  &kp COMMA  &kp DOT  &kp FSLH  &kp ESC
-                         &kp LGUI  &mo 1  &kp SPACE    &kp RET  &mo 2  &kp RALT
+//╭─────────────┬────────┬────────┬────────┬────────┬────────╮    ╭───────────────┬───────────────┬────────┬───────┬────────────────┬────────────╮
+  &kp GRAVE     &kp Q     &kp W     &kp E     &kp R     &kp T          &go_line_home    &go_line_end     &go_up   &kp O    &layer_tap FN P   &kp DELETE
+//├─────────────┼────────┼────────┼────────┼────────┼────────┤    ├───────────────┼───────────────┼────────┼───────┼────────────────┼────────────┤
+  &kp RSHIFT    &kp A     &kp S     &kp D     &kp F     &kp G          &kp H            &go_left         &go_down &go_right &kp NUMBER_2      &kp NUMBER_3
+//├─────────────┼────────┼────────┼────────┼────────┼────────┤    ├───────────────┼───────────────┼────────┼───────┼────────────────┼────────────┤
+  &mt LCTL TAB   &kp Z     &kp X     &kp C     &kp V     &kp B          &kp N            &kp M            &kp COMMA &kp DOT  &kp SLASH         &mt_hold RGUI TAB
+//╰─────────────┴────────┴────────┴────────┴────────┴────────╯    ╰───────────────┴───────────────┴────────┴───────┴────────────────┴────────────╯
+                                &kp LALT  &lgui_hold LGUI LALT  &kp SPC    &kp BACKSPACE  &layer_hold NAV ENTER  &layer_hold FN ESC
+//                              ╰─────────┴────────────────────┴──────────╯    ╰──────────────┴───────────────────────┴───────────────────╯
             >;
+            label = "def";
         };
 
-        lower_layer {
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  1  |  2  |  3  |  4  |  5  |   |  6  |  7  |  8  |  9  |  0  | BSPC |
-            // | BTCLR| BT1 | BT2 | BT3 | BT4 | BT5 |   | LFT | DWN |  UP | RGT |     |      |
-            // | SHFT |     |     |     |     |     |   |     |     |     |     |     |      |
-            //                    | GUI |     | SPC |   | ENT |     | ALT |
-
+        WIN_layer {
             bindings = <
-&kp TAB     &kp N1        &kp N2        &kp N3        &kp N4        &kp N5          &kp N6    &kp N7    &kp N8    &kp N9     &kp N0  &kp BSPC
-&bt BT_CLR  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &kp LEFT  &kp DOWN  &kp UP    &kp RIGHT  &trans  &trans
-&kp LSHFT   &trans        &trans        &trans        &trans        &trans          &trans    &trans    &trans    &trans     &trans  &trans
-                                        &kp LGUI      &trans        &kp SPACE       &kp RET   &trans    &kp RALT
+//╭─────────────┬─────┬─────┬─────┬─────┬─────╮    ╭────────────────┬──────────────┬─────────┬─────┬─────┬───────────╮
+  ___            ___   ___   ___   ___   ___        &win_line_home    &win_line_end   &win_up    ___   ___   ___
+//├─────────────┼─────┼─────┼─────┼─────┼─────┤    ├────────────────┼──────────────┼─────────┼─────┼─────┼───────────┤
+  ___            ___   ___   ___   ___   ___        ___               &win_left       &win_down  &win_right  ___  ___
+//├─────────────┼─────┼─────┼─────┼─────┼─────┤    ├────────────────┼──────────────┼─────────┼─────┼─────┼───────────┤
+  &mt LALT TAB   ___   ___   ___   ___   ___        ___               ___             ___        ___   ___   &kp RCTRL
+//╰─────────────┴─────┴─────┴─────┴─────┴─────╯    ╰────────────────┴──────────────┴─────────┴─────┴─────┴───────────╯
+                                &kp LWIN  &lgui_hold LCTL LWIN  ___    ___  ___  ___
+//                              ╰─────────┴────────────────────┴─────╯    ╰─────┴─────┴─────╯
             >;
+            label = "win";
         };
 
-        raise_layer {
-            // -----------------------------------------------------------------------------------------
-            // |  TAB |  !  |  @  |  #  |  $  |  %  |   |  ^  |  &  |  *  |  (  |  )  | BSPC |
-            // | CTRL |     |     |     |     |     |   |  -  |  =  |  [  |  ]  |  \  |  `   |
-            // | SHFT |     |     |     |     |     |   |  _  |  +  |  {  |  }  | "|" |  ~   |
-            //                    | GUI |     | SPC |   | ENT |     | ALT |
-
+        IOS_layer {
             bindings = <
-&kp TAB    &kp EXCL  &kp AT  &kp HASH  &kp DLLR  &kp PRCNT    &kp CARET  &kp AMPS   &kp ASTRK  &kp LPAR  &kp RPAR  &kp BSPC
-&kp LCTRL  &trans    &trans  &trans    &trans    &trans       &kp MINUS  &kp EQUAL  &kp LBKT   &kp RBKT  &kp BSLH  &kp GRAVE
-&kp LSHFT  &trans    &trans  &trans    &trans    &trans       &kp UNDER  &kp PLUS   &kp LBRC   &kp RBRC  &kp PIPE  &kp TILDE
-                             &kp LGUI  &trans    &kp SPACE    &kp RET    &trans     &kp RALT
+//╭─────┬─────┬─────┬─────┬─────┬─────╮    ╭─────┬─────┬─────┬─────┬─────┬─────╮
+  ___    ___   ___   ___   ___   ___        ___   ___   ___   ___   ___   ___
+//├─────┼─────┼─────┼─────┼─────┼─────┤    ├─────┼─────┼─────┼─────┼─────┼─────┤
+  ___    ___   ___   ___   ___   ___        ___   ___   ___   ___   ___   ___
+//├─────┼─────┼─────┼─────┼─────┼─────┤    ├─────┼─────┼─────┼─────┼─────┼─────┤
+  ___    ___   ___   ___   ___   ___        ___   ___   ___   ___   ___   ___
+//╰─────┴─────┴─────┴─────┴─────┴─────╯    ╰─────┴─────┴─────┴─────┴─────┴─────╯
+                                ___  ___  ___    ___  ___  ___
+//                              ╰────┴────┴────╯    ╰────┴────┴────╯
             >;
+            label = "ios";
         };
 
-        layer_3 {
+        NAV_layer {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-                        &trans  &trans  &trans    &trans  &trans  &trans
+//╭─────────────┬──────────────────┬──────────┬───────────────┬──────────┬──────────╮    ╭───────────┬────────────┬────────────┬────────────┬───────────────────────┬─────╮
+  &kp TILDE     &kp EXCLAMATION     &kp PIPE    &kp BACKSLASH    &kp LBRC   &kp RBRC        &kp PLUS     &command_7    &command_8    &command_9    &layer_tap FN ASTERISK   ___
+//├─────────────┼──────────────────┼──────────┼───────────────┼──────────┼──────────┤    ├───────────┼────────────┼────────────┼────────────┼───────────────────────┼─────┤
+  ___           &kp SINGLE_QUOTE    &kp DOUBLE_QUOTES &kp UNDERSCORE &kp LBKT &kp RBKT       &kp MINUS    &command_4    &command_5    &command_6    &kp COLON               &kp SEMICOLON
+//├─────────────┼──────────────────┼──────────┼───────────────┼──────────┼──────────┤    ├───────────┼────────────┼────────────┼────────────┼───────────────────────┼─────┤
+  &kp LS(TAB)   &kp PLUS            &kp MINUS   &kp EQUAL       &kp LPAR   &kp RPAR        &kp EQUAL    &kp NUMBER_1 &kp NUMBER_2 &kp NUMBER_3 ___                    ___
+//╰─────────────┴──────────────────┴──────────┴───────────────┴──────────┴──────────╯    ╰───────────┴────────────┴────────────┴────────────┴───────────────────────┴─────╯
+                                ___  ___  ___    ___  ___  &kp NUMBER_0
+//                              ╰────┴────┴────╯    ╰────┴────┴──────────────╯
             >;
+            label = "nav";
         };
 
-        layer_4 {
+        FN_layer {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-                        &trans  &trans  &trans    &trans  &trans  &trans
+//╭─────┬────────┬────────┬────────┬────────┬────────╮    ╭────────────────────┬─────────────────────┬──────────────┬──────────────┬─────┬─────╮
+  ___    &kp F1   &kp F2   &kp F3   &kp F4   &kp F5        &kp LG(LEFT_ARROW)    &kp LG(RIGHT_ARROW)    &kp C_BRI_UP    &kp C_BRI_DN    ___   ___
+//├─────┼────────┼────────┼────────┼────────┼────────┤    ├────────────────────┼─────────────────────┼──────────────┼──────────────┼─────┼─────┤
+  ___    &kp F6   &kp F7   &kp F8   &kp F9   &kp F10       &kp PAGE_UP           &kp PAGE_DOWN          &kp C_PREV      &kp C_PLAY_PAUSE &kp C_NEXT ___
+//├─────┼────────┼────────┼────────┼────────┼────────┤    ├────────────────────┼─────────────────────┼──────────────┼──────────────┼─────┼─────┤
+  ___    &kp F11  &kp F12  &kp C_PREV &kp C_PLAY_PAUSE &kp C_NEXT  &kp HOME      &kp END                &kp C_MUTE      &kp C_VOLUME_DOWN &kp C_VOL_UP ___
+//╰─────┴────────┴────────┴────────┴────────┴────────╯    ╰────────────────────┴─────────────────────┴──────────────┴──────────────┴─────┴─────╯
+                                &to DEF  &to WIN  &to IOS    &tog LOCK  &to DEF  &to WIN
+//                              ╰────────┴────────┴────────╯    ╰──────────┴────────┴────────╯
             >;
+            label = "fn";
         };
 
-        layer_5 {
+        LOCK_layer {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-                        &trans  &trans  &trans    &trans  &trans  &trans
+//╭─────┬─────┬─────┬─────┬─────┬─────╮    ╭─────┬─────┬─────┬─────┬─────┬─────╮
+  XXX    XXX   XXX   XXX   XXX   XXX        XXX   XXX   XXX   XXX   XXX   XXX
+//├─────┼─────┼─────┼─────┼─────┼─────┤    ├─────┼─────┼─────┼─────┼─────┼─────┤
+  XXX    XXX   XXX   XXX   XXX   XXX        XXX   XXX   XXX   XXX   XXX   XXX
+//├─────┼─────┼─────┼─────┼─────┼─────┤    ├─────┼─────┼─────┼─────┼─────┼─────┤
+  XXX    XXX   XXX   XXX   XXX   XXX        XXX   XXX   XXX   XXX   XXX   XXX
+//╰─────┴─────┴─────┴─────┴─────┴─────╯    ╰─────┴─────┴─────┴─────┴─────┴─────╯
+                                XXX  XXX  XXX    XXX  XXX  XXX
+//                              ╰────┴────┴────╯    ╰────┴────┴────╯
             >;
+            label = "lock";
         };
+
+        SYS_layer {
+            bindings = <
+//╭────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────╮    ╭────────────┬────────────┬─────┬─────┬─────┬─────╮
+  &bt BT_CLR   &bt BT_DISC 0    &bt BT_DISC 1    &bt BT_DISC 2    &bt BT_DISC 3    &bt BT_DISC 4       &bt BT_NXT    &bt BT_PRV    ___   ___   ___   ___
+//├────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤    ├────────────┼────────────┼─────┼─────┼─────┼─────┤
+  &bootloader  &bt BT_SEL 0     &bt BT_SEL 1     &bt BT_SEL 2     &bt BT_SEL 3     &bt BT_SEL 4        &kp T         ___          ___   ___   ___   &bootloader
+//├────────────┼───────────────┼───────────────┼───────────────┼───────────────┼───────────────┤    ├────────────┼────────────┼─────┼─────┼─────┼─────┤
+  &sys_reset   &go_macbook      &go_macpro       &go_win          &go_ipad         &go_vision          &sys_reset    ___          ___   ___   ___   ___
+//╰────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────╯    ╰────────────┴────────────┴─────┴─────┴─────┴─────╯
+                                &to DEF  &to WIN  &to IOS    ___  ___  ___
+//                              ╰────────┴────────┴────────╯    ╰────┴────┴────╯
+            >;
+            label = "sys";
+        };
+
     };
 };
