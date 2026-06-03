@@ -616,11 +616,11 @@
         DEF_layer {
             bindings = <
 //╭─────────────┬────────┬────────┬────────┬────────┬────────╮    ╭───────────────┬───────────────┬────────┬───────┬────────────────┬────────────╮
-  &kp GRAVE     &kp Q     &kp W     &kp E     &kp R     &kp T          &go_line_home    &go_line_end     &go_up   &kp O    &layer_tap FN P   &kp DELETE
+  &kp GRAVE     &kp Q     &kp W     &kp E     &kp R     &kp T          &go_line_home    &kp U        &kp I   &kp O    &layer_tap FN P   &kp DELETE
 //├─────────────┼────────┼────────┼────────┼────────┼────────┤    ├───────────────┼───────────────┼────────┼───────┼────────────────┼────────────┤
-  &kp RSHIFT    &kp A     &kp S     &kp D     &kp F     &kp G          &kp H            &go_left         &go_down &go_right &kp NUMBER_2      &kp NUMBER_3
+  &kp RSHIFT    &kp A     &kp S     &kp D     &kp F     &kp G          &kp H            &kp J        &kp K   &kp L     &kp NUMBER_2      &kp NUMBER_3
 //├─────────────┼────────┼────────┼────────┼────────┼────────┤    ├───────────────┼───────────────┼────────┼───────┼────────────────┼────────────┤
-  &mt LCTL TAB   &kp Z     &kp X     &kp C     &kp V     &kp B          &kp N            &kp M            &kp COMMA &kp DOT  &kp SLASH         &mt_hold RGUI TAB
+  &mt LCTL TAB   &kp Z     &kp X     &kp C     &kp V     &kp B          &kp N            &kp M      &kp COMMA &kp DOT  &kp SLASH         &mt_hold RGUI TAB
 //╰─────────────┴────────┴────────┴────────┴────────┴────────╯    ╰───────────────┴───────────────┴────────┴───────┴────────────────┴────────────╯
                          &kp LALT  &lgui_hold LGUI LALT  &kp SPC    &kp BACKSPACE  &layer_hold NAV ENTER  &layer_hold FN ESC
 //                    ╰─────────┴────────────────────┴──────────╯  ╰──────────────┴───────────────────────┴───────────────────╯
